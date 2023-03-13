@@ -20,12 +20,13 @@ public class CellularAutomatonMazeGenerator {
     public static Thread solveThread;
     public static boolean generationRunning = false;
     public static boolean selectSolve = false;
+    public static boolean stopSolveOnEdge = false;
     public static Color aliveColor = Color.BLACK;//alive cell color
     public static Color deadColor = Color.WHITE; //background color/dead cell color
     public static Color solveColor = Color.RED; //color of solve pathway
     public static int width = 800; //width of maze grid (pixels)
     public static int height = 600; //height of maze grid (pixels)
-    public static int gridSize = 10; //height/width of individual cell (pixels) Must be divisor of width and height
+    public static int gridSize = 5; //height/width of individual cell (pixels) Must be divisor of width and height
     public static int timeout = 50; //timeout between generations (ms)
     public static int generationRule = 0; //rule 0 = B3/S1234, rule 1 = B3/S12345
 
@@ -74,7 +75,6 @@ public class CellularAutomatonMazeGenerator {
         generateMenu.add(startGenerationMenuItem);
 
         JMenuItem stopGenerationMenuItem = new JMenuItem("Stop Maze Generation");
-        stopGenerationMenuItem.setEnabled(false);
         generateMenu.add(stopGenerationMenuItem);
 
         JMenuItem resetMazeGridMenuItem = new JMenuItem("Reset Maze Grid");
@@ -84,7 +84,6 @@ public class CellularAutomatonMazeGenerator {
         generateMenu.add(altRuleMenuItem);
 
         JMenuItem borderMenuItem = new JMenuItem("Insert Border");
-        //borderMenuItem.setEnabled(false);
         generateMenu.add(borderMenuItem);
 
         JMenu solveMenu = new JMenu("Solve");
@@ -95,11 +94,13 @@ public class CellularAutomatonMazeGenerator {
         solveMenu.add(startSolveMenuItem);
 
         JMenuItem stopSolveMenuItem = new JMenuItem("Stop Solving");
-        stopSolveMenuItem.setEnabled(false);
         solveMenu.add(stopSolveMenuItem);
 
         JMenuItem resetSolveMenuItem = new JMenuItem("Reset Solve Paths");
         solveMenu.add(resetSolveMenuItem);
+
+        JMenuItem stopSolveOnEdgeItem = new JMenuItem("Stop Solving if on Edge");
+        solveMenu.add(stopSolveOnEdgeItem);
 
         menuBar.add(Box.createHorizontalGlue());
 
@@ -116,17 +117,11 @@ public class CellularAutomatonMazeGenerator {
             if (solveThread != null) {
                 solveThread.interrupt();
             }
-            stopSolveMenuItem.setEnabled(false);
-            startSolveMenuItem.setEnabled(true);
-            stopGenerationMenuItem.setEnabled(true);
-            startGenerationMenuItem.setEnabled(false);
             generationRunning = true;
             startGeneration();
         });
 
         stopGenerationMenuItem.addActionListener(e -> {
-            startGenerationMenuItem.setEnabled(true);
-            stopGenerationMenuItem.setEnabled(false);
             generationRunning = false;
             if (generationThread != null) {
                 generationThread.interrupt();
@@ -135,8 +130,6 @@ public class CellularAutomatonMazeGenerator {
         });
 
         resetMazeGridMenuItem.addActionListener(e -> {
-            startGenerationMenuItem.setEnabled(true);
-            stopGenerationMenuItem.setEnabled(false);
             resetGrid();
         });
 
@@ -144,19 +137,17 @@ public class CellularAutomatonMazeGenerator {
             if (generationRule == 0) {
                 generationRule = 1;
                 altRuleMenuItem.setText("Use: B3/S1234 Rule");
+                updateStatus("Changed rule to B3/S12345");
             } else {
                 generationRule = 0;
                 altRuleMenuItem.setText("Use: B3/S12345 Rule");
+                updateStatus("Changed rule to B3/S1234");
             }
         });
 
         borderMenuItem.addActionListener(e -> createBorder());
 
         startSolveMenuItem.addActionListener(e -> {
-            startGenerationMenuItem.setEnabled(true);
-            stopGenerationMenuItem.setEnabled(false);
-            stopSolveMenuItem.setEnabled(true);
-            startSolveMenuItem.setEnabled(false);
             //Stop main generation thread
             generationRunning = false;
             if (generationThread != null) {
@@ -168,8 +159,6 @@ public class CellularAutomatonMazeGenerator {
 
         stopSolveMenuItem.addActionListener(e -> {
             updateStatus("Solving algorithm stopped");
-            stopSolveMenuItem.setEnabled(false);
-            startSolveMenuItem.setEnabled(true);
             selectSolve = false;
             if (solveThread != null) {
                 solveThread.interrupt();
@@ -177,6 +166,18 @@ public class CellularAutomatonMazeGenerator {
         });
 
         resetSolveMenuItem.addActionListener(e -> resetSolvePath());
+
+        stopSolveOnEdgeItem.addActionListener(e -> {
+            if (stopSolveOnEdge) {
+                stopSolveOnEdge = false;
+                stopSolveOnEdgeItem.setText("Stop Solving if on Edge");
+                updateStatus("Algorithm will continue after hitting an edge");
+            } else {
+                stopSolveOnEdge = true;
+                stopSolveOnEdgeItem.setText("Continue Solving if on Edge");
+                updateStatus("Algorithm will terminate after hitting an edge");
+            }
+        });
 
     }
 
@@ -447,6 +448,14 @@ public class CellularAutomatonMazeGenerator {
                 }
                 currentPoint = nextPoint;
                 path.add(currentPoint);
+                if (stopSolveOnEdge) {
+                    if (currentPoint[0] == 0 || currentPoint[0] == width/gridSize - 1 || currentPoint[1] == 0 || currentPoint[1] == height/gridSize - 1) {
+                        mazeGrid[currentPoint[0]][currentPoint[1]].setBackground(solveColor);
+                        updateStatus("Possible maze pathway found!");
+                        selectSolve = false;
+                        solveThread.interrupt();
+                    }
+                }
                 try {
                     Thread.sleep(timeout);
                 } catch (InterruptedException ignored) {}
@@ -526,7 +535,7 @@ public class CellularAutomatonMazeGenerator {
             mazeGrid[0][i].setBackground(aliveColor);
             mazeGrid[width/gridSize - 1][i].setBackground(aliveColor);
         }
+        updateStatus("Inserted border!");
     }
-
-
+    
 }
