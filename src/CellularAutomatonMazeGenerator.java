@@ -8,19 +8,19 @@ import java.util.concurrent.ThreadLocalRandom;
  * Title: CellularAutomatonMazeGenerator
  * Author: Yannis Seimenis
  * Description: Generates maze-like patterns on a grid following cellular automata Maze and Mazectric rulestrings.
- * Date: 08/03/2023
+ * Date: 14/03/2023
  */
 
 public class CellularAutomatonMazeGenerator {
 
-    public static JFrame frame;
-    public static JLabel statusLabel;
-    public static JPanel[][] mazeGrid;
-    public static Thread generationThread;
-    public static Thread solveThread;
-    public static boolean generationRunning = false;
-    public static boolean selectSolve = false;
-    public static boolean stopSolveOnEdge = false;
+    public static JFrame frame; //main frame
+    public static JLabel statusLabel; //Status label
+    public static JPanel[][] mazeGrid; //maze grid 2D array
+    public static Thread generationThread; //maze generation thread
+    public static Thread solveThread; //solve algorithm thread
+    public static boolean generationRunning = false; //maze generation
+    public static boolean selectSolve = false; //solve active
+    public static boolean stopSolveOnEdge = false; //solve if hit edge
     public static Color aliveColor = Color.BLACK;//alive cell color
     public static Color deadColor = Color.WHITE; //background color/dead cell color
     public static Color solveColor = Color.RED; //color of solve pathway
