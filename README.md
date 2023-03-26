@@ -1,4 +1,6 @@
-# CellularAutomatonMazeGenerator
+![banner](https://github.com/Yannis-S/CellularAutomatonMazeGenerator/blob/master/social-preview.png)
+
+## About
 A Java program that generates maze-like patterns following cellular automata maze and mazectric rulestrings.
 
 - Generates maze like patterns based on user input
